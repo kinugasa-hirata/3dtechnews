@@ -8,7 +8,7 @@ client
   .setKey(process.env.APPWRITE_API_KEY);
 
 const databases = new Databases(client);
-const parser = new Parser();
+const parser = new Parser({ timeout: 8000 });
 
 const DATABASE_ID = process.env.VITE_APPWRITE_DATABASE_ID;
 const COLLECTION_ID = 'articles';
