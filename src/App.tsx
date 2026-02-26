@@ -8,14 +8,22 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { ArticleListItem } from '@/components/ArticleListItem';
 import { Footer } from '@/components/Footer';
 import { useArticles } from '@/hooks/useArticles';
-import { mockArticles } from '@/data/mockArticles';
-import type { ViewMode } from '@/types';
+import { fetchArticles } from '@/lib/appwrite';
+import type { Article, ViewMode } from '@/types';
 import './App.css';
 
 function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [isLoading, setIsLoading] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true);
+  const [articles, setArticles] = useState<Article[]>([]);
+
+  useEffect(() => {
+    fetchArticles()
+      .then(setArticles)
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
+
   const {
     filters,
     filteredArticles,
@@ -28,39 +36,34 @@ function App() {
     setSearch,
     clearFilters,
     activeFiltersCount,
-  } = useArticles(mockArticles);
+  } = useArticles(articles);
 
-  // Simulate loading state
   const handleRefresh = () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    fetchArticles()
+      .then(setArticles)
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   };
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 noise-overlay">
-      {/* Header */}
-      <Header 
-        searchValue={filters.search} 
-        onSearchChange={setSearch} 
+      <Header
+        searchValue={filters.search}
+        onSearchChange={setSearch}
       />
 
-      {/* Main Content */}
       <main className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Hero Section */}
           <div className="mb-8 animate-fade-in-up">
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-8 text-white relative overflow-hidden">
-              {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6B35]/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FF6B35]/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-              
+
               <div className="relative z-10">
                 <Badge className="bg-[#FF6B35] text-white mb-4">
                   毎日更新
@@ -75,11 +78,11 @@ function App() {
                   日本語で要約して毎日お届けします。
                   技術者やメーカーの方々の情報収集をサポートします。
                 </p>
-                
+
                 <div className="flex flex-wrap gap-4 mt-6">
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    現在 {mockArticles.length} 件の記事を掲載中
+                    現在 {articles.length} 件の記事を掲載中
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-400">
                     <span className="w-2 h-2 bg-[#FF6B35] rounded-full" />
@@ -91,7 +94,6 @@ function App() {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar */}
             <div className="lg:sticky lg:top-28 lg:self-start">
               <Sidebar
                 selectedTags={filters.tags}
@@ -109,9 +111,7 @@ function App() {
               />
             </div>
 
-            {/* Article Feed */}
             <div className="flex-1">
-              {/* Toolbar */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold text-gray-800">
@@ -121,7 +121,7 @@ function App() {
                     {filteredArticles.length}件
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
@@ -131,7 +131,7 @@ function App() {
                   >
                     <RefreshCw className="w-4 h-4" />
                   </Button>
-                  
+
                   <div className="flex items-center bg-gray-100 rounded-lg p-1">
                     <Button
                       variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
@@ -153,25 +153,29 @@ function App() {
                 </div>
               </div>
 
-              {/* Articles */}
-              {filteredArticles.length > 0 ? (
+              {isLoading ? (
+                <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+                  <RefreshCw className="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
+                  <p className="text-gray-500">記事を読み込み中...</p>
+                </div>
+              ) : filteredArticles.length > 0 ? (
                 <div className={`
-                  ${viewMode === 'grid' 
-                    ? 'grid grid-cols-1 md:grid-cols-2 gap-6' 
+                  ${viewMode === 'grid'
+                    ? 'grid grid-cols-1 md:grid-cols-2 gap-6'
                     : 'space-y-4'
                   }
                 `}>
                   {filteredArticles.map((article, index) => (
                     viewMode === 'grid' ? (
-                      <ArticleCard 
-                        key={article.id} 
-                        article={article} 
+                      <ArticleCard
+                        key={article.id}
+                        article={article}
                         index={index}
                       />
                     ) : (
-                      <ArticleListItem 
-                        key={article.id} 
-                        article={article} 
+                      <ArticleListItem
+                        key={article.id}
+                        article={article}
                         index={index}
                       />
                     )
@@ -188,23 +192,11 @@ function App() {
                   <p className="text-gray-500 mb-4">
                     フィルターを変更するか、検索条件を調整してください
                   </p>
-                  <Button 
+                  <Button
                     onClick={clearFilters}
                     className="bg-[#FF6B35] hover:bg-[#FF6B35]/90"
                   >
                     フィルターをクリア
-                  </Button>
-                </div>
-              )}
-
-              {/* Load More */}
-              {filteredArticles.length > 0 && filteredArticles.length < mockArticles.length && (
-                <div className="mt-8 text-center">
-                  <Button 
-                    variant="outline" 
-                    className="px-8 border-gray-300 hover:border-[#FF6B35] hover:text-[#FF6B35]"
-                  >
-                    もっと見る
                   </Button>
                 </div>
               )}
@@ -213,7 +205,6 @@ function App() {
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
