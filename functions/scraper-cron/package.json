@@ -1,0 +1,12 @@
+{
+  "name": "scraper-cron",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node src/main.js"
+  },
+  "dependencies": {
+    "node-appwrite": "^14.0.0",
+    "rss-parser": "^3.13.0"
+  }
+}
