@@ -127,7 +127,7 @@ export default async ({ req, res, log, error }) => {
             sourceUrl,
             sourceName: source.name,
             publishedAt,
-            tags: detectTags(title, content),
+            tags: JSON.stringify(detectTags(title, content)),
             category: detectCategory(title, content),
             maker: detectMaker(title, content),
             country: source.country,
