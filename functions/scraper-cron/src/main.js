@@ -16,9 +16,7 @@ const COLLECTION_ID = 'articles';
 const RSS_SOURCES = [
   { name: '3DPrint.com', url: 'https://3dprint.com/feed/', country: 'usa', language: 'en' },
   { name: 'Hackaday', url: 'https://hackaday.com/blog/feed/', country: 'usa', language: 'en' },
-  { name: 'All3DP', url: 'https://all3dp.com/feed/', country: 'germany', language: 'en' },
   { name: 'Fabbaloo', url: 'https://www.fabbaloo.com/feed', country: 'usa', language: 'en' },
-  { name: '3Ders.org', url: 'https://www.3ders.org/rss.xml', country: 'netherlands', language: 'en' },
 ];
 
 function detectCategory(title, content) {
@@ -134,8 +132,6 @@ export default async ({ req, res, log, error }) => {
             maker: detectMaker(title, content),
             country: source.country,
             language: source.language,
-            translatedFrom: null,
-            createdAt: new Date().toISOString(),
             expiresAt: getExpiryDate(),
           };
 
